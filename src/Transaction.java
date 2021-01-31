@@ -30,13 +30,13 @@ public class Transaction {
 				
 		//Gathers transaction inputs (Making sure they are unspent):
 		for(TransactionInput i : inputs) {
-			i.UTXO = PhoenixChain.UTXOs.get(i.transactionOutputId);
+			i.UTXO = PhoenixCoin.UTXOs.get(i.transactionOutputId);
 		}
 
 		//Checks if transaction is valid:
-		if(getInputsValue() < PhoenixChain.minimumTransaction) {
+		if(getInputsValue() < PhoenixCoin.minimumTransaction) {
 			System.out.println("Transaction Inputs too small: " + getInputsValue());
-			System.out.println("Please enter the amount greater than " + PhoenixChain.minimumTransaction);
+			System.out.println("Please enter the amount greater than " + PhoenixCoin.minimumTransaction);
 			return false;
 		}
 		
@@ -48,13 +48,13 @@ public class Transaction {
 				
 		//Add outputs to Unspent list
 		for(TransactionOutput o : outputs) {
-			PhoenixChain.UTXOs.put(o.id , o);
+			PhoenixCoin.UTXOs.put(o.id , o);
 		}
 		
 		//Remove transaction inputs from UTXO lists as spent:
 		for(TransactionInput i : inputs) {
 			if(i.UTXO == null) continue; //if Transaction can't be found skip it 
-			PhoenixChain.UTXOs.remove(i.UTXO.id);
+			PhoenixCoin.UTXOs.remove(i.UTXO.id);
 		}
 		
 		return true;

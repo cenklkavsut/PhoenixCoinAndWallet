@@ -7,7 +7,7 @@ import java.util.Map;
 public class Wallet {
 	public PrivateKey privateKey;
 	public PublicKey publicKey;
-	
+
 	public HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>();
 	
 	public Wallet() {
@@ -16,7 +16,7 @@ public class Wallet {
 		
 	public void generateKeyPair() {
 		try {
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA","BC");
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA","PC");
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
 			ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime192v1");
 			// Initialize the key generator and generate a KeyPair
@@ -33,7 +33,7 @@ public class Wallet {
 	
 	public float getBalance() {
 		float total = 0;	
-        for (Map.Entry<String, TransactionOutput> item: PhoenixChain.UTXOs.entrySet()){
+        for (Map.Entry<String, TransactionOutput> item:PhoenixCoin.UTXOs.entrySet()){
         	TransactionOutput UTXO = item.getValue();
             if(UTXO.isMine(publicKey)) { //if output belongs to me ( if coins belong to me )
             	UTXOs.put(UTXO.id,UTXO); //add it to our list of unspent transactions.
