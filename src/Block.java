@@ -1,83 +1,58 @@
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
+import java.util.ArrayList;
 
 public class Block {
-	public String version; 
-    public String hash;//the hash its self
-    private Date Timestamp; //as number of milliseconds 1/1/2021.
-    public String previousHash;//previous hash signature
-    private String data; //our data will the block will store 
-    
-    
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	public Date getTimestamp() {
-		return Timestamp;
-	}
-
-	public void setTimestamp(Date timestamp) {
-		Timestamp = timestamp;
-	}
-
-	public String getHash() {
-		return hash;
-	}
-
-	public void setHash(String hash) {
-		this.hash = hash;
-	}
-
-	public String getPreviousHash() {
-		return previousHash;
-	}
-
-	public void setPreviousHash(String previousHash) {
+	public String hash;
+	public String previousHash; 
+	public String merkleRoot;
+	public ArrayList<Transaction> transactions = new ArrayList<Transaction>(); //our data will be a simple message.
+	public long timeStamp; //as number of milliseconds since 1/1/1970.
+	public int nonce;
+	
+	//Block Constructor.  
+	public Block(String previousHash ) {
 		this.previousHash = previousHash;
-	}
-
-	public String getData() {
-		return data;
-	}
-
-	public void setData(String data) {
-		this.data = data;
-	}
-    
-    
-public String computeHash() {
+		this.timeStamp = new Date().getTime();
 		
-		String dataToHash = "" + this.version + this.Timestamp + this.previousHash + this.data;//the stored data
-		
-		MessageDigest digest;
-		String encoded = null;
-		
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-			byte[] hash = digest.digest(dataToHash.getBytes(StandardCharsets.UTF_8));
-			encoded = Base64.getEncoder().encodeToString(hash);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+		this.hash = calculateHash(); //Making sure we do this after we set the other values.
+	}
+	
+	//Calculate new hash based on blocks contents
+	public String calculateHash() {
+		String calculatedhash = StringUtils.applySha256( 
+				previousHash +
+				Long.toString(timeStamp) +
+				Integer.toString(nonce) + 
+				merkleRoot
+				);
+		return calculatedhash;
+	}
+	
+	//Increases nonce value until hash target is reached.
+	public void mineBlock(int difficulty) {
+		merkleRoot = StringUtils.getMerkleRoot(transactions);
+		String target = StringUtils.getDificultyString(difficulty); //Create a string with difficulty * "0" 
+		while(!hash.substring( 0, difficulty).equals(target)) {
+			nonce ++;
+			hash = calculateHash();
 		}
-		
-		this.hash = encoded;
-		return encoded;
+		System.out.println("Block Mined!!! : " + hash);
 	}
-    
+	
+	//Add transactions to this block
+	public boolean addTransaction(Transaction transaction) {
+		//process transaction and check if valid, unless block is genesis block then ignore.
+		if(transaction == null) return false;		
+		if((!"0".equals(previousHash))) {
+			if((transaction.processTransaction() != true)) {
+				System.out.println("Transaction failed to process. Discarded.");
+				return false;
+			}
+		}
 
- public Block(String version,Date Timestamp  ,String data) {
-	 this.version =version;
-	 this.data=data;
-	 this.Timestamp=Timestamp;
-	 this.hash=computeHash();
- }
+		transactions.add(transaction);
+		System.out.println("Transaction Successfully added to Block");
+		return true;
+	}
 
 }
